@@ -61,7 +61,11 @@ export const StudentView: React.FC = () => {
   const [interviewChat, setInterviewChat] = useState<{ role: 'user' | 'assistant'; content: string }[]>([
     {
       role: 'assistant',
-      content: `Mabuhay, ${studentName}! I am your Gemini Academic Mentor. To tailor every activity and assessment directly to your personal aspirations, I'd love to learn about you. What hobbies, technologies, or subjects genuinely excite you?`
+      content: `Mabuhay, ${studentName}! Welcome to AKMA PH (Adaptive Knowledge and Mastery Assessment Philippines).
+
+Technology integration works best when it solves real classroom struggles. Right now, teachers fight a losing battle against AI cheating and copied homework. But AKMA PH changes the game: your teachers can build truly student-centric lessons, and the platform adapts each assessment to your unique background. Everyone gets a different version of the task, so you cannot just copy answers or ask a generic AI tool to do the work for you.
+
+To build your personalized learning profile, tell me: Where in the Philippines are you based, and what passions, technologies, or hobbies genuinely excite you?`
     }
   ]);
   const [interviewInput, setInterviewInput] = useState<string>('');
@@ -77,7 +81,7 @@ export const StudentView: React.FC = () => {
   const [currentActivity, setCurrentActivity] = useState<ActivityData | null>(null);
   const [currentSubmission, setCurrentSubmission] = useState<StudentSubmissionData | null>(null);
 
-  // Workspace & Socratic Coach state
+  // Workspace & AI Coach state
   const [studentAnswerInput, setStudentAnswerInput] = useState<string>('');
   const [submittingWork, setSubmittingWork] = useState<boolean>(false);
   const [workSubmittedSuccess, setWorkSubmittedSuccess] = useState<boolean>(false);
@@ -217,12 +221,12 @@ export const StudentView: React.FC = () => {
       if (chats.length > 0) {
         setCoachChats(chats);
       } else {
-        // Welcoming Socratic coach greeting
+        // Welcoming AI Coach greeting
         setCoachChats([
           {
             id: 'init-coach',
             role: 'assistant',
-            content: `Hello ${studentName}! I am your Socratic AI Coach for "${act.title}". I will guide your reasoning without giving away direct answers. What is your initial intuition on this challenge?`,
+            content: `Hello ${studentName}! I am your AI Coach for "${act.title}". I will guide your critical thinking and help you build true mastery without giving away direct answers. What is your initial thought on this challenge?`,
             timestamp: new Date().toISOString()
           }
         ]);
@@ -289,7 +293,7 @@ export const StudentView: React.FC = () => {
     }
   };
 
-  // Socratic Coach Chat Exchange
+  // AI Coach Chat Exchange
   const handleAskCoach = async () => {
     if (!coachInput.trim() || !currentActivity) return;
     setCoachLoading(true);
@@ -306,7 +310,7 @@ export const StudentView: React.FC = () => {
     setCoachInput('');
 
     try {
-      const res = await fetch('/api/gemini/socratic-coach', {
+      const res = await fetch('/api/gemini/ai-coach', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -385,7 +389,7 @@ export const StudentView: React.FC = () => {
                 </span>
               </div>
               <p className="text-xs sm:text-sm text-emerald-100 mt-1">
-                Every activity is uniquely adapted to your personal interests and career goals with interactive Gemini Socratic coaching.
+                Every activity is uniquely adapted to your personal background and career goals with interactive Gemini AI coaching.
               </p>
             </div>
           </div>
@@ -438,7 +442,7 @@ export const StudentView: React.FC = () => {
             }`}
           >
             <Sparkles className="w-4 h-4" />
-            <span>Personalized Workspace & Coach</span>
+            <span>Personalized Workspace & AI Coach</span>
           </button>
 
           <button
@@ -510,7 +514,7 @@ export const StudentView: React.FC = () => {
         </div>
       )}
 
-      {/* TAB 2: PERSONALIZED WORKSPACE & SOCRATIC COACH */}
+      {/* TAB 2: PERSONALIZED WORKSPACE & AI COACH */}
       {activeTab === 'workspace' && currentActivity && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           
@@ -624,7 +628,7 @@ export const StudentView: React.FC = () => {
 
           </div>
 
-          {/* Right Column: Socratic AI Coach */}
+          {/* Right Column: AI Coach */}
           <div className="lg:col-span-5 bg-white dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700/80 rounded-2xl p-5 shadow-sm flex flex-col h-[700px]">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-700">
               <div className="flex items-center gap-2">
@@ -633,13 +637,13 @@ export const StudentView: React.FC = () => {
                 </div>
                 <div>
                   <h3 className="text-xs font-bold text-slate-900 dark:text-white">
-                    Gemini Socratic Coach
+                    Gemini AI Coach
                   </h3>
                   <p className="text-[10px] text-slate-500">Guides your critical thinking (Never reveals direct answers)</p>
                 </div>
               </div>
               <span className="text-[10px] px-2 py-0.5 rounded-full bg-teal-100 dark:bg-teal-950/60 text-teal-800 dark:text-teal-300 font-semibold">
-                Socratic Guard Active
+                AI Coaching Active
               </span>
             </div>
 
@@ -651,7 +655,7 @@ export const StudentView: React.FC = () => {
                   className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}
                 >
                   <div className="text-[10px] text-slate-400 mb-1 px-1">
-                    {msg.role === 'user' ? studentName : 'Gemini Socratic Coach'}
+                    {msg.role === 'user' ? studentName : 'Gemini AI Coach'}
                   </div>
                   <div
                     className={`max-w-[85%] rounded-2xl p-3 text-xs leading-relaxed ${
@@ -700,21 +704,44 @@ export const StudentView: React.FC = () => {
 
       {/* TAB 3: STUDENT PROFILE & GEMINI ONBOARDING INTERVIEW */}
       {activeTab === 'profile' && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="space-y-6">
           
-          {/* Left: Profile Form Fields */}
-          <div className="lg:col-span-6 bg-white dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700/80 rounded-2xl p-6 shadow-sm space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-700">
-              <div>
-                <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                  <UserCheck className="w-4 h-4 text-emerald-600" />
-                  <span>Personal Learning & Aspiration Profile</span>
-                </h2>
-                <p className="text-xs text-slate-500">
-                  Used by Gemini to adapt activities so no 2 students receive the same assignment.
-                </p>
-              </div>
+          {/* Mission & Purpose Banner */}
+          <div className="p-5 rounded-2xl bg-gradient-to-r from-emerald-50 via-teal-50 to-blue-50 dark:from-emerald-950/40 dark:via-teal-950/30 dark:to-slate-900 border border-emerald-200/80 dark:border-emerald-800 text-xs space-y-2.5">
+            <div className="flex items-center gap-2">
+              <span className="px-2.5 py-0.5 rounded-full bg-emerald-600 text-white font-bold text-[10px] uppercase tracking-wider">
+                AKMA PH Core Purpose
+              </span>
+              <h3 className="font-bold text-slate-900 dark:text-white text-sm">
+                Why Your Background Makes Cheating Impossible & Learning Meaningful
+              </h3>
             </div>
+            <p className="text-slate-700 dark:text-slate-300 leading-relaxed text-xs">
+              Technology integration works best when it solves real classroom struggles. Right now, educators fight a losing battle against AI cheating and copied homework. <strong className="text-slate-900 dark:text-white font-semibold">AKMA PH changes the game</strong>: it takes a single teacher-crafted lesson and adapts the assessment for each student based on their unique background. Everyone gets a different version of the task—meaning you cannot just share answers or ask a basic AI tool to do the work for you.
+            </p>
+            <div className="pt-1 flex flex-wrap items-center gap-4 text-[11px] font-semibold text-emerald-800 dark:text-emerald-300">
+              <span className="flex items-center gap-1">&bull; Truly student-centric lessons</span>
+              <span className="flex items-center gap-1">&bull; Zero copied homework</span>
+              <span className="flex items-center gap-1">&bull; Guided by interactive AI coaching</span>
+              <span className="flex items-center gap-1">&bull; Builds institutional trust in modern educational tech</span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            {/* Left: Profile Form Fields */}
+            <div className="lg:col-span-6 bg-white dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700/80 rounded-2xl p-6 shadow-sm space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-700">
+                <div>
+                  <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <UserCheck className="w-4 h-4 text-emerald-600" />
+                    <span>Personal Learning & Background Profile</span>
+                  </h2>
+                  <p className="text-xs text-slate-500">
+                    Your answers directly customize your coursework so no two students have the same assessment.
+                  </p>
+                </div>
+              </div>
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
@@ -852,7 +879,8 @@ export const StudentView: React.FC = () => {
           </div>
 
         </div>
-      )}
+      </div>
+    )}
 
     </div>
   );

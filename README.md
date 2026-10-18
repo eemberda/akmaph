@@ -22,7 +22,7 @@ An AI-powered adaptive learning and authentic assessment platform purpose-built 
 ### Role-Based Access Control (RBAC) Matrix
 
 1. **Super Administrator (`eric.emberda@gmail.com`)**:
-   - Centralized prompt governance: Upload and version-control revised system prompts for activity generation, personalizers, Socratic coaches, and grading engines.
+   - Centralized prompt governance: Upload and version-control revised system prompts for activity generation, personalizers, AI coaches, and grading engines.
    - Cross-user telemetry auditing: Inspect real-time token consumption, request counts, role distribution, and system audit logs.
 2. **Philippine Educators (`*.edu.ph`)**:
    - Author activities & authentic assessments with multi-turn Gemini curriculum brainstorming.
@@ -34,7 +34,7 @@ An AI-powered adaptive learning and authentic assessment platform purpose-built 
 3. **Philippine Students (`*.edu.ph`)**:
    - Dynamic onboarding profile interview powered by Gemini.
    - Automated scenario personalization: Every activity is uniquely framed around the student's specific career dreams and interests so no two students have identical assessments.
-   - Guided Socratic coaching: For non-assessment activities, Gemini acts as a cognitive coach—guiding with leading questions and hints without revealing direct answers.
+   - Guided AI coaching: For non-assessment activities, Gemini acts as a cognitive coach—guiding with leading questions and hints without revealing direct answers.
    - Secure submission history and feedback archive.
 
 ---
@@ -44,7 +44,7 @@ An AI-powered adaptive learning and authentic assessment platform purpose-built 
 | Threat Zone | Identified Risk | Production Defense Implemented |
 | :--- | :--- | :--- |
 | **Input Surfaces** | Malicious injection in student answers or educator curricula | Strict schema validation, string size clamping, and undefined stripping |
-| **Planning & Reasoning** | Prompt injection attempting to bypass Socratic tutor | System prompt containment boundaries: strict directive never to reveal answers |
+| **Planning & Reasoning** | Prompt injection attempting to bypass AI coach | System prompt containment boundaries: strict directive never to reveal answers |
 | **Tool Execution** | Unauthorized administrative escalation | Server-side role check isolating Super Admin to `eric.emberda@gmail.com` |
 | **Memory & State** | Cross-tenant document snooping | Owner-bound ABAC Firestore rules (`request.auth.uid == userId`) |
 | **Inter-System Communication** | Gemini API key exposure | Server-side proxy with zero client-side credentials & resilient fallback ladder |
@@ -193,8 +193,8 @@ gcloud run services update edugemini-ph \
 2. **Join & Personalized Activity**:
    - Enter an activity Join Code in the top bar or pick an assigned activity.
    - Notice that the challenge scenario is customized to your career aspirations so no two students have the same scenario.
-3. **Socratic AI Coach**:
-   - In the **Personalized Workspace**, ask the Socratic Coach: *"How should I approach this problem?"*
+3. **AI Coach**:
+   - In the **Personalized Workspace**, ask the AI Coach: *"How should I approach this problem?"*
    - Verify that Gemini guides you with inquiry questions without directly revealing the solution.
 4. **Work Submission**:
    - Enter your response and click **Submit Work to Educator**.

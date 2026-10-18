@@ -31,8 +31,10 @@ import {
   RefreshCw,
   FileCheck,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  Compass
 } from 'lucide-react';
+import { EducatorOnboardingModal } from './EducatorOnboardingModal';
 
 export const EducatorView: React.FC = () => {
   const { currentUser, userProfile } = useAuth();
@@ -41,6 +43,15 @@ export const EducatorView: React.FC = () => {
   const educatorName = currentUser?.displayName || userProfile?.displayName || 'Prof. Maria Dela Cruz';
 
   const [activeTab, setActiveTab] = useState<'create' | 'activities' | 'submissions' | 'reports'>('create');
+  
+  // Onboarding walkthrough modal state (defaults to true for first-time educators)
+  const [showWalkthrough, setShowWalkthrough] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('akma_educator_walkthrough_seen') !== 'true';
+    } catch {
+      return false;
+    }
+  });
   
   // Activities list
   const [activities, setActivities] = useState<ActivityData[]>([]);
@@ -335,16 +346,27 @@ Key concepts: Fluid mechanics, hydrostatic pressure, solar irradiance curves, le
             </div>
           </div>
 
-          {/* Quick Metrics */}
-          <div className="flex items-center gap-3 bg-black/10 backdrop-blur-sm p-2 rounded-xl border border-white/10 text-xs">
-            <div className="px-3 py-1 text-center">
-              <div className="font-bold text-lg">{activities.length}</div>
-              <div className="text-[10px] text-blue-200">Activities</div>
-            </div>
-            <div className="w-px h-8 bg-white/20" />
-            <div className="px-3 py-1 text-center">
-              <div className="font-bold text-lg">{submissions.length}</div>
-              <div className="text-[10px] text-blue-200">Submissions</div>
+          {/* Walkthrough Button & Quick Metrics */}
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              onClick={() => setShowWalkthrough(true)}
+              className="flex items-center gap-1.5 px-3 py-2 bg-white/15 hover:bg-white/25 text-white rounded-xl text-xs font-bold backdrop-blur-sm transition border border-white/20 shadow-xs cursor-pointer"
+              title="Open Guided Walkthrough for Educators"
+            >
+              <Compass className="w-4 h-4 text-amber-300" />
+              <span>System Walkthrough</span>
+            </button>
+
+            <div className="flex items-center gap-3 bg-black/10 backdrop-blur-sm p-2 rounded-xl border border-white/10 text-xs">
+              <div className="px-3 py-1 text-center">
+                <div className="font-bold text-lg">{activities.length}</div>
+                <div className="text-[10px] text-blue-200">Activities</div>
+              </div>
+              <div className="w-px h-8 bg-white/20" />
+              <div className="px-3 py-1 text-center">
+                <div className="font-bold text-lg">{submissions.length}</div>
+                <div className="text-[10px] text-blue-200">Submissions</div>
+              </div>
             </div>
           </div>
         </div>
@@ -991,6 +1013,24 @@ Key concepts: Fluid mechanics, hydrostatic pressure, solar irradiance curves, le
           </div>
         </div>
       )}
+
+      {/* Educator Walkthrough & Onboarding Modal */}
+      <EducatorOnboardingModal
+        isOpen={showWalkthrough}
+        onClose={() => {
+          setShowWalkthrough(false);
+          try {
+            localStorage.setItem('akma_educator_walkthrough_seen', 'true');
+          } catch {}
+        }}
+        onStartCreating={() => {
+          setShowWalkthrough(false);
+          try {
+            localStorage.setItem('akma_educator_walkthrough_seen', 'true');
+          } catch {}
+          setActiveTab('create');
+        }}
+      />
 
     </div>
   );

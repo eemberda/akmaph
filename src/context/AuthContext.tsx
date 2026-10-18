@@ -19,7 +19,7 @@ interface AuthContextType {
   switchRole: (role: UserRole) => void;
   setUserRole: (role: UserRole, institution?: string) => Promise<void>;
   isDemoMode: boolean;
-  loginAsDemo: (role: UserRole) => void;
+  loginAsDemo: (role: 'educator' | 'student') => void;
   signInAsSuperAdmin: () => Promise<void>;
   authError: string | null;
   clearAuthError: () => void;
@@ -63,14 +63,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           let profile = await getUserProfile(fbUser.uid);
 
           if (!profile) {
-            // Initial default profile for verified .edu.ph user
-            const defaultRole: UserRole = isEric ? 'superadmin' : 'educator';
+            // Initial default profile for verified user
+            const isStudentEmail = userEmail.includes('student') || userEmail.includes('std.') || userEmail.includes('.std');
+            const defaultRole: UserRole = isEric ? 'superadmin' : (isStudentEmail ? 'student' : 'educator');
             const domainParts = userEmail.split('@')[1] || 'philippines.edu.ph';
 
             profile = {
               uid: fbUser.uid,
               email: fbUser.email || '',
-              displayName: fbUser.displayName || (isEric ? 'Eric Emberda (Super Admin)' : 'Philippine Academic User'),
+              displayName: fbUser.displayName || (isEric ? 'Eric Emberda (Super Admin)' : (isStudentEmail ? 'Philippine Student' : 'Philippine Educator')),
               role: defaultRole,
               isSuperAdmin: isEric,
               institution: isEric ? 'Commission on Higher Education / AI Governance' : domainParts,
@@ -78,10 +79,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               updatedAt: new Date().toISOString()
             };
             await saveUserProfile(profile);
+          } else if (isEric) {
+            profile.role = 'superadmin';
+            profile.isSuperAdmin = true;
           }
 
           setUserProfile(profile);
-          setActiveRole(profile.role);
+          // Unified redirect: Superadmin -> 'superadmin', Educator -> 'educator', Student -> 'student'
+          setActiveRole(isEric ? 'superadmin' : profile.role);
         } catch (err) {
           console.error('Error fetching/saving user profile:', err);
         }
@@ -99,11 +104,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signInWithGoogle = async () => {
     setLoading(true);
+    setAuthError(null);
     try {
-      await signInWithPopup(auth, googleProvider);
-    } catch (error) {
+      const result = await signInWithPopup(auth, googleProvider);
+      const email = result.user?.email?.toLowerCase() || '';
+      const isEric = email === SUPER_ADMIN_EMAIL.toLowerCase();
+      const hasEduPh = email.includes('.edu.ph');
+
+      if (!isEric && !hasEduPh) {
+        setAuthError('Access Restricted: Registration and sign-in are strictly restricted to Philippine academic Google Workspace accounts containing ".edu.ph". The provided account is not an authorized .edu.ph institutional account.');
+        await fbSignOut(auth);
+        setCurrentUser(null);
+        setUserProfile(null);
+        return;
+      }
+
+      if (isEric) {
+        setActiveRole('superadmin');
+      }
+    } catch (error: any) {
       console.error('Sign-in error:', error);
-      throw error;
+      if (!error.message?.includes('closed-by-user') && !error.message?.includes('popup-closed')) {
+        setAuthError('Authentication could not be completed. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -174,20 +197,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // Quick Demo sign-in for seamless verification or test users
-  const loginAsDemo = (role: UserRole) => {
+  // Quick Demo sign-in for seamless verification or test users (Educator & Student only)
+  const loginAsDemo = (role: 'educator' | 'student') => {
     setIsDemoMode(true);
-    const mockEmail = role === 'superadmin'
-      ? 'superadmin@akma.ph'
-      : (role === 'educator' ? 'prof.delacruz@up.edu.ph' : 'student.santos@ust.edu.ph');
+    const mockEmail = role === 'educator' ? 'prof.delacruz@up.edu.ph' : 'student.santos@ust.edu.ph';
 
     const mockProfile: UserProfile = {
       uid: `demo-${role}-123`,
       email: mockEmail,
-      displayName: role === 'superadmin' ? 'Super Administrator' : (role === 'educator' ? 'Prof. Maria Dela Cruz' : 'Juan Santos'),
+      displayName: role === 'educator' ? 'Prof. Maria Dela Cruz' : 'Juan Santos',
       role,
-      isSuperAdmin: role === 'superadmin',
-      institution: role === 'superadmin' ? 'CHED / AI Governance' : (role === 'educator' ? 'University of the Philippines' : 'University of Santo Tomas'),
+      isSuperAdmin: false,
+      institution: role === 'educator' ? 'University of the Philippines' : 'University of Santo Tomas',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };

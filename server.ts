@@ -40,17 +40,17 @@ const systemPromptsState: Record<string, { id: string; name: string; target: str
   },
   socratic_coach: {
     id: 'socratic_coach',
-    name: 'Socratic Tutor & Cognitive Guide',
+    name: 'AI Coach & Cognitive Guide',
     target: 'student',
-    promptText: `You are a supportive, insightful Socratic Coach for students.
+    promptText: `You are a supportive, insightful AI Coach for students.
 CRITICAL MANDATE: NEVER provide the final answer or solve the problem for the student under any circumstance.
 Instead:
-1. Guide them by asking thought-provoking questions.
+1. Guide them by asking thought-provoking questions and encouraging independent thinking.
 2. Break down complicated hurdles into small manageable intuition checks.
 3. Reference foundational principles and highlight misconceptions gently.
-4. Reinforce their grit, curiosity, and independent reasoning.`,
-    description: 'Guides student learning interactions in coaching mode without revealing answers.',
-    version: 1,
+4. Reinforce their grit, curiosity, and authentic understanding.`,
+    description: 'Guides student learning interactions in AI Coaching mode without revealing answers.',
+    version: 2,
     updatedBy: 'eric.emberda@gmail.com',
     updatedAt: new Date().toISOString()
   },
@@ -74,11 +74,25 @@ Return structured evaluation including:
     id: 'profile_interviewer',
     name: 'Student Profile Onboarding Interviewer',
     target: 'student',
-    promptText: `You are an encouraging academic mentor conducting an onboarding interview with a Filipino student.
-Your goal is to discover their authentic hobbies, technical/creative interests, dreams after graduation, and ideal projects.
-Ask one or two thoughtful, conversational questions at a time. Once sufficient details are shared, synthesize a concise profile summary.`,
-    description: 'Interviews students during onboarding to build their learning profile.',
-    version: 1,
+    promptText: `You are an encouraging academic mentor in AKMA PH (Adaptive Knowledge and Mastery Assessment in the Philippines).
+Explain our purpose warmly: AKMA PH gives educators the power to build truly student-centric lessons. Teachers fight a losing battle against AI cheating and copied homework. But AKMA PH changes the game: it adapts each lesson and assessment for each student based on their unique background. Everyone gets a different version of the task—meaning students cannot just share answers or ask a basic AI tool to do the work for them.
+Interview the student to uncover:
+1. Their local Philippine community/regional background and authentic everyday interests.
+2. What they genuinely want to achieve after graduation (career aspirations, personal goals).
+3. A real-world local problem or dream project they care about.
+Ask one or two conversational questions at a time. When sufficient details are collected, synthesize a finalized JSON summary:
+\`\`\`json
+{
+  "isComplete": true,
+  "summary": "...",
+  "interests": "...",
+  "goals": "...",
+  "careerAspirations": "...",
+  "dreamProject": "..."
+}
+\`\`\``,
+    description: 'Interviews students during onboarding to build their authentic background for personalized lessons.',
+    version: 2,
     updatedBy: 'eric.emberda@gmail.com',
     updatedAt: new Date().toISOString()
   }
@@ -361,8 +375,8 @@ Rules:
   }
 });
 
-// 6. Socratic Coach for Student
-app.post('/api/gemini/socratic-coach', async (req: Request, res: Response) => {
+// 6. AI Coach for Student (Adaptive Cognitive Guide)
+const handleCoachRequest = async (req: Request, res: Response) => {
   const data = (req.body && typeof req.body === 'object') ? req.body : {};
   const {
     activityTitle = '',
@@ -395,11 +409,11 @@ ${formattedHistory}
 Student's Latest Reflection / Question:
 "${String(studentQuery).slice(0, 3000)}"
 
-Respond as a wise, encouraging Socratic Coach.
-Remember: DO NOT answer the question for them! Guide them with inquiry, intuitive analogies, and thought questions.`;
+Respond as a wise, encouraging AI Coach.
+Remember: DO NOT answer the question for them! Guide their critical thinking with inquiry, intuitive analogies, and thought-provoking hints.`;
 
     const result = await generateContentWithFallback(prompt, systemPrompt);
-    recordUsage(userId, userEmail, 'student', `Socratic Coach Chat: ${activityTitle}`, result.modelUsed, result.estimatedTokens);
+    recordUsage(userId, userEmail, 'student', `AI Coach Chat: ${activityTitle}`, result.modelUsed, result.estimatedTokens);
 
     res.json({
       success: true,
@@ -407,10 +421,13 @@ Remember: DO NOT answer the question for them! Guide them with inquiry, intuitiv
       modelUsed: result.modelUsed
     });
   } catch (err: any) {
-    console.error('Error in socratic-coach:', err);
+    console.error('Error in ai-coach:', err);
     res.status(500).json({ success: false, error: err.message || 'Failed to get coach reply' });
   }
-});
+};
+
+app.post('/api/gemini/ai-coach', handleCoachRequest);
+app.post('/api/gemini/socratic-coach', handleCoachRequest);
 
 // 7. Suggest Score & Evaluation (Educator Grading Flow)
 app.post('/api/gemini/suggest-grade', async (req: Request, res: Response) => {

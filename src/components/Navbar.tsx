@@ -35,12 +35,12 @@ export const Navbar: React.FC = () => {
   const [roleDropdownOpen, setRoleDropdownOpen] = useState(false);
 
   const roles: { id: UserRole; label: string; icon: any; color: string }[] = [
-    { id: 'superadmin', label: 'Super Admin', icon: ShieldCheck, color: 'text-amber-600 bg-amber-50 dark:bg-amber-950/40 dark:text-amber-400' },
-    { id: 'educator', label: 'Educator (.edu.ph)', icon: BookOpen, color: 'text-blue-600 bg-blue-50 dark:bg-blue-950/40 dark:text-blue-400' },
-    { id: 'student', label: 'Student (.edu.ph)', icon: UserCheck, color: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 dark:text-emerald-400' }
+    ...(isSuperAdmin ? [{ id: 'superadmin' as UserRole, label: 'Super Admin', icon: ShieldCheck, color: 'text-amber-600 bg-amber-50 dark:bg-amber-950/40 dark:text-amber-400' }] : []),
+    { id: 'educator' as UserRole, label: 'Educator (.edu.ph)', icon: BookOpen, color: 'text-blue-600 bg-blue-50 dark:bg-blue-950/40 dark:text-blue-400' },
+    { id: 'student' as UserRole, label: 'Student (.edu.ph)', icon: UserCheck, color: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 dark:text-emerald-400' }
   ];
 
-  const currentRoleObj = roles.find(r => r.id === activeRole) || roles[1];
+  const currentRoleObj = roles.find(r => r.id === activeRole) || roles[0] || { id: 'educator', label: 'Educator', icon: BookOpen, color: 'text-blue-600' };
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md transition-colors">
@@ -230,8 +230,7 @@ export const Navbar: React.FC = () => {
                   <LogIn className="w-4 h-4" />
                   <span>Sign in with Google (.edu.ph)</span>
                 </button>
-                <div className="grid grid-cols-3 gap-2">
-                  <button onClick={() => { loginAsDemo('superadmin'); setMobileMenuOpen(false); }} className="px-2 py-1.5 text-[11px] bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 rounded font-medium text-center">Demo Admin</button>
+                <div className="grid grid-cols-2 gap-2">
                   <button onClick={() => { loginAsDemo('educator'); setMobileMenuOpen(false); }} className="px-2 py-1.5 text-[11px] bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 rounded font-medium text-center">Demo Educator</button>
                   <button onClick={() => { loginAsDemo('student'); setMobileMenuOpen(false); }} className="px-2 py-1.5 text-[11px] bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 rounded font-medium text-center">Demo Student</button>
                 </div>
