@@ -1,0 +1,140 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // 1. Global Default Deny Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Hardened Global Helpers
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerified() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isAdmin() {
+      return isVerified() && request.auth.token.email == 'eric.emberda@gmail.com';
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function hasEduPhEmail() {
+      return isVerified() && (
+        request.auth.token.email.matches('.*\\.edu\\.ph$') ||
+        request.auth.token.email.matches('.*\\.edu\\.ph.*')
+      );
+    }
+
+    // 2. User Profiles
+    match /users/{userId} {
+      allow get: if isVerified() && (request.auth.uid == userId || isAdmin());
+      allow list: if isVerified() && (resource.data.uid == request.auth.uid || isAdmin());
+      allow create: if isVerified() && isValidId(userId) && request.auth.uid == userId
+                    && incoming().uid == request.auth.uid
+                    && incoming().email is string
+                    && (isAdmin() || (hasEduPhEmail() && incoming().role in ['educator', 'student']));
+      allow update: if isVerified() && request.auth.uid == userId
+                    && incoming().uid == existing().uid
+                    && incoming().email == existing().email
+                    && (!('isSuperAdmin' in incoming()) || isAdmin());
+      allow delete: if isAdmin();
+
+      // Student Detailed Profile
+      match /profile/{profileDoc} {
+        allow read: if isVerified() && (request.auth.uid == userId || isAdmin() || request.auth.token.email.matches('.*\\.edu\\.ph$'));
+        allow write: if isVerified() && request.auth.uid == userId;
+      }
+    }
+
+    // 3. System Prompts (Super Admin Only)
+    match /system_prompts/{promptId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin() && isValidId(promptId);
+    }
+
+    // 4. Activities & Assessments
+    match /activities/{activityId} {
+      allow get: if isVerified() && isValidId(activityId);
+      allow list: if isVerified() && (resource.data.educatorId == request.auth.uid || isAdmin() || true);
+      allow create: if isVerified() && isValidId(activityId)
+                    && incoming().id == activityId
+                    && incoming().educatorId == request.auth.uid
+                    && incoming().title is string && incoming().title.size() <= 300
+                    && incoming().type in ['activity', 'assessment']
+                    && incoming().joinCode is string && incoming().joinCode.size() <= 32;
+      allow update: if isVerified() && isValidId(activityId)
+                    && (resource.data.educatorId == request.auth.uid || isAdmin())
+                    && incoming().id == existing().id
+                    && incoming().educatorId == existing().educatorId;
+      allow delete: if isVerified() && isValidId(activityId)
+                    && (resource.data.educatorId == request.auth.uid || isAdmin());
+
+      // Educator multi-turn interaction chat
+      match /interactions/{interactionId} {
+        allow read, write: if isVerified() && isValidId(interactionId)
+                           && (get(/databases/$(database)/documents/activities/$(activityId)).data.educatorId == request.auth.uid || isAdmin());
+      }
+
+      // Student Submissions & Grading
+      match /submissions/{studentId} {
+        allow get: if isVerified() && isValidId(studentId)
+                   && (request.auth.uid == studentId
+                       || get(/databases/$(database)/documents/activities/$(activityId)).data.educatorId == request.auth.uid
+                       || isAdmin());
+        allow list: if isVerified()
+                    && (resource.data.studentId == request.auth.uid
+                        || resource.data.educatorId == request.auth.uid
+                        || isAdmin());
+        allow create: if isVerified() && isValidId(studentId)
+                      && (request.auth.uid == studentId
+                          || get(/databases/$(database)/documents/activities/$(activityId)).data.educatorId == request.auth.uid
+                          || isAdmin());
+        allow update: if isVerified() && isValidId(studentId)
+                      && (
+                        // Student editing own answer
+                        (request.auth.uid == studentId
+                         && incoming().studentId == existing().studentId
+                         && incoming().activityId == existing().activityId
+                         && existing().status != 'graded')
+                        ||
+                        // Educator grading or updating
+                        (get(/databases/$(database)/documents/activities/$(activityId)).data.educatorId == request.auth.uid
+                         && incoming().studentId == existing().studentId)
+                        ||
+                        isAdmin()
+                      );
+        allow delete: if isAdmin() || get(/databases/$(database)/documents/activities/$(activityId)).data.educatorId == request.auth.uid;
+
+        // Student Socratic Coach Exchanges
+        match /coach_chats/{chatId} {
+          allow read, write: if isVerified() && isValidId(chatId)
+                             && (request.auth.uid == studentId
+                                 || get(/databases/$(database)/documents/activities/$(activityId)).data.educatorId == request.auth.uid
+                                 || isAdmin());
+        }
+      }
+    }
+
+    // 5. Usage Stats & Telemetry
+    match /usage_stats/{statId} {
+      allow read: if isAdmin();
+      allow create: if isVerified() && isValidId(statId)
+                    && incoming().userId == request.auth.uid;
+      allow update, delete: if isAdmin();
+    }
+  }
+}

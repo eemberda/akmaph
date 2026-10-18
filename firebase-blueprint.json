@@ -1,0 +1,177 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile with role and authentication details",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "maxLength": 128 },
+        "email": { "type": "string", "maxLength": 256 },
+        "displayName": { "type": "string", "maxLength": 256 },
+        "role": { "type": "string", "enum": ["superadmin", "educator", "student"] },
+        "institution": { "type": "string", "maxLength": 256 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "role"]
+    },
+    "StudentProfile": {
+      "title": "StudentProfile",
+      "description": "Student background, interests, life goals, and career aspirations for personalization",
+      "type": "object",
+      "properties": {
+        "studentId": { "type": "string", "maxLength": 128 },
+        "interests": { "type": "string", "maxLength": 2000 },
+        "goals": { "type": "string", "maxLength": 2000 },
+        "careerAspirations": { "type": "string", "maxLength": 2000 },
+        "dreamProject": { "type": "string", "maxLength": 2000 },
+        "completed": { "type": "boolean" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["studentId", "completed"]
+    },
+    "SystemPrompt": {
+      "title": "SystemPrompt",
+      "description": "System prompts managed by Super Admin for controlling Gemini behavior",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 256 },
+        "target": { "type": "string", "maxLength": 128 },
+        "promptText": { "type": "string", "maxLength": 10000 },
+        "description": { "type": "string", "maxLength": 1000 },
+        "version": { "type": "number" },
+        "updatedBy": { "type": "string", "maxLength": 256 },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "name", "target", "promptText", "version"]
+    },
+    "Activity": {
+      "title": "Activity",
+      "description": "Learning activity or assessment created by an educator",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "educatorId": { "type": "string", "maxLength": 128 },
+        "educatorEmail": { "type": "string", "maxLength": 256 },
+        "educatorName": { "type": "string", "maxLength": 256 },
+        "title": { "type": "string", "maxLength": 300 },
+        "type": { "type": "string", "enum": ["activity", "assessment"] },
+        "subject": { "type": "string", "maxLength": 200 },
+        "gradeLevel": { "type": "string", "maxLength": 100 },
+        "instructions": { "type": "string", "maxLength": 10000 },
+        "referenceMaterials": { "type": "string", "maxLength": 20000 },
+        "pedagogicalBasis": { "type": "string", "maxLength": 2000 },
+        "joinCode": { "type": "string", "maxLength": 32 },
+        "invitedEmails": { "type": "string", "maxLength": 5000 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "educatorId", "title", "type", "joinCode"]
+    },
+    "EducatorInteraction": {
+      "title": "EducatorInteraction",
+      "description": "Multi-turn brainstorm and refinement exchange between educator and Gemini",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "activityId": { "type": "string", "maxLength": 128 },
+        "educatorId": { "type": "string", "maxLength": 128 },
+        "role": { "type": "string", "enum": ["user", "assistant"] },
+        "content": { "type": "string", "maxLength": 15000 },
+        "pedagogicalNote": { "type": "string", "maxLength": 2000 },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "activityId", "educatorId", "role", "content"]
+    },
+    "StudentSubmission": {
+      "title": "StudentSubmission",
+      "description": "Student submission for an activity, with personalized prompt and suggested grading",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "activityId": { "type": "string", "maxLength": 128 },
+        "educatorId": { "type": "string", "maxLength": 128 },
+        "studentId": { "type": "string", "maxLength": 128 },
+        "studentEmail": { "type": "string", "maxLength": 256 },
+        "studentName": { "type": "string", "maxLength": 256 },
+        "personalizedContent": { "type": "string", "maxLength": 15000 },
+        "personalizationRationale": { "type": "string", "maxLength": 2000 },
+        "studentAnswer": { "type": "string", "maxLength": 20000 },
+        "status": { "type": "string", "enum": ["assigned", "in_progress", "submitted", "graded"] },
+        "suggestedScore": { "type": "number" },
+        "maxScore": { "type": "number" },
+        "feedback": { "type": "string", "maxLength": 10000 },
+        "rubricAnalysis": { "type": "string", "maxLength": 5000 },
+        "submittedAt": { "type": "string", "format": "date-time" },
+        "gradedAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "activityId", "educatorId", "studentId", "status"]
+    },
+    "CoachExchange": {
+      "title": "CoachExchange",
+      "description": "Socratic coach dialogue turn between student and Gemini for guidance",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "submissionId": { "type": "string", "maxLength": 128 },
+        "studentId": { "type": "string", "maxLength": 128 },
+        "role": { "type": "string", "enum": ["user", "assistant"] },
+        "content": { "type": "string", "maxLength": 10000 },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "submissionId", "studentId", "role", "content"]
+    },
+    "UsageStat": {
+      "title": "UsageStat",
+      "description": "Recorded Gemini API usage telemetry for Super Admin auditing",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "userEmail": { "type": "string", "maxLength": 256 },
+        "role": { "type": "string", "maxLength": 64 },
+        "action": { "type": "string", "maxLength": 128 },
+        "model": { "type": "string", "maxLength": 128 },
+        "estimatedTokens": { "type": "number" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "userId", "action", "model"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profile with role definitions"
+    },
+    "/users/{userId}/profile/details": {
+      "schema": "StudentProfile",
+      "description": "Student background, goals, and interests"
+    },
+    "/system_prompts/{promptId}": {
+      "schema": "SystemPrompt",
+      "description": "Global prompt configurations managed by Super Admin"
+    },
+    "/activities/{activityId}": {
+      "schema": "Activity",
+      "description": "Educator created activities and assessments"
+    },
+    "/activities/{activityId}/interactions/{interactionId}": {
+      "schema": "EducatorInteraction",
+      "description": "Educator refinement and brainstorm chat with Gemini"
+    },
+    "/activities/{activityId}/submissions/{studentId}": {
+      "schema": "StudentSubmission",
+      "description": "Student personalized activity and submitted work"
+    },
+    "/activities/{activityId}/submissions/{studentId}/coach_chats/{chatId}": {
+      "schema": "CoachExchange",
+      "description": "Socratic coach exchanges for a student submission"
+    },
+    "/usage_stats/{statId}": {
+      "schema": "UsageStat",
+      "description": "Audit and usage logs for super admin analytics"
+    }
+  }
+}

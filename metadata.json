@@ -1,0 +1,6 @@
+{
+  "name": "EduGemini PH - Adaptive Learning & Assessment SaaS",
+  "description": "AI-powered adaptive learning SaaS for Philippine educators and students featuring personalized assessments, Socratic coaching, and super admin prompt governance.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
